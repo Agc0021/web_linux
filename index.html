@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WebLinux XFCE (Offline Ready)</title>
+  <style>
+    body { margin: 0; background: #111; color: #eee; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+    #status { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 4px; font-size: 12px; }
+    #screen_container div { white-space: pre; font: 14px monospace; line-height: 14px; }
+  </style>
+  <script src="libv86.js"></script>
+</head>
+<body>
+  <div id="status">Initializing VM & caching for offline use...</div>
+  <div id="screen_container">
+    <div></div>
+    <canvas></canvas>
+  </div>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js");
+    }
+
+    window.onload = function () {
+      const statusEl = document.getElementById("status");
+
+      const emulator = new V86({
+        wasm_path: "v86.wasm",
+        memory_size: 512 * 1024 * 1024,
+        vga_memory_size: 16 * 1024 * 1024,
+        screen_container: document.getElementById("screen_container"),
+        bios: { url: "seabios.bin" },
+        vga_bios: { url: "vgabios.bin" },
+        hda: {
+          url: "alpine-xfce-web.img",
+          async: false
+        },
+        autostart: true
+      });
+
+      emulator.add_listener("download-progress", function (e) {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          statusEl.textContent = `Downloading OS image (${pct}%) — Cached for offline use`;
+        }
+      });
+
+      emulator.add_listener("emulator-ready", function () {
+        statusEl.textContent = "Ready — Click screen to capture mouse";
+      });
+
+      document.getElementById("screen_container").onclick = function () {
+        emulator.lock_mouse();
+      };
+    };
+  </script>
+</body>
+</html>
