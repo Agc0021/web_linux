@@ -32,10 +32,12 @@
         screen_container: document.getElementById("screen_container"),
         bios: { url: "seabios.bin" },
         vga_bios: { url: "vgabios.bin" },
-        hda: {
-          url: "alpine-xfce-web.img",
-          async: false
-        },
+
+	hda: {
+	    url: "https://github.com/aguerracastillo702/web_linux/releases/download/v1.0.0/alpine-xfce-web.img",
+	    async: true
+	},
+
         autostart: true
       });
 
